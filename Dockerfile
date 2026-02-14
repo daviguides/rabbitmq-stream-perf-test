@@ -1,6 +1,6 @@
 FROM ubuntu:24.04 as builder
 
-ARG stream_perf_test_url="set-url-here"
+ARG stream_perf_test_url="https://github.com/rabbitmq/rabbitmq-stream-perf-test/releases/download/v1.4.0/stream-perf-test-1.4.0.jar"
 
 RUN set -eux; \
 	\
@@ -88,9 +88,13 @@ RUN set -eux; \
     if [ "$(uname -m)" = "x86_64" ] ; then java -jar stream-perf-test.jar --help ; \
 	  fi
 
+# COPY entrypoint final
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 RUN groupadd --gid 2000 stream-perf-test
-RUN useradd --uid 2000 --gid stream-perf-test --comment "perf-test user" stream-perf-test
+RUN useradd --uid 2000 --gid stream-perf-test --comment "stream-perf-test user" stream-perf-test
 
 USER stream-perf-test:stream-perf-test
 
-ENTRYPOINT ["java", "-Dio.netty.processId=1", "-jar", "stream-perf-test.jar"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
